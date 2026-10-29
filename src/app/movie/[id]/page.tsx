@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { Suspense } from "react";
 import { getMovieDetails, getImageUrl } from "@/lib/tmdb/server";
 import Navbar from "@/components/Navbar";
 import AddToListButton from "@/components/AddToListButton";
@@ -6,20 +6,16 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 
 interface MoviePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-const MoviePage = async ({ params }: MoviePageProps) => {
-  const supabase = createClient();
+const MovieContent = async ({ params }: MoviePageProps) => {
+  const { id } = await params;
 
   // Get movie details from TMDB
-  const movieDetails = await getMovieDetails(Number(params.id));
-
-  if (!movieDetails) {
-    redirect("/");
-  }
+  const movieDetails = await getMovieDetails(Number(id));
 
   return (
     <div className="min-h-screen bg-background text-text">
@@ -117,5 +113,10 @@ const MoviePage = async ({ params }: MoviePageProps) => {
     </div>
   );
 };
-
-export default MoviePage;
+export default function MoviePage({ params }: MoviePageProps) {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <MovieContent params={params} />
+    </Suspense>
+  );
+}

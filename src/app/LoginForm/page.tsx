@@ -1,6 +1,6 @@
- "use client";
+"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, Eye, EyeOff, User, Mail, Lock } from "lucide-react";
@@ -9,7 +9,7 @@ import { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 const supabase = createClient();
 
-const Login = () => {
+const LoginForm  = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -215,4 +215,10 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default function Login() {
+  return (
+    <Suspense fallback={<div>Loading login...</div>}>
+      <LoginForm />
+    </Suspense>
+  );
+}

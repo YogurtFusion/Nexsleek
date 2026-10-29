@@ -1,42 +1,39 @@
+
+import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ContinueWatchingRow from "@/components/ContinueWatchingRow";
 import FreeToWatchRow from "@/components/FreeToWatchRow";
 import MovieRow from "@/components/MovieRow";
-import { getTrending, getPopular, getTopRated, getGenres, Movie } from "@/lib/tmdb/server";
+import {
+  getTrending,
+  getPopular,
+  getTopRated,
+  getGenres,
+  getByGenre,
+} from "@/lib/tmdb/server";
 import Link from "next/link";
 
-async function getMoviesForGenre(genreId: number, type: "movie" | "tv" = "movie") {
-  try {
-    const response = await fetch(
-      `https://api.themoviedb.org/3/discover/${type}?api_key=${process.env.TMDB_API_KEY}&with_genres=${genreId}&language=en-US&page=1`,
-      { next: { revalidate: 3600 } }
-    );
-    const data = await response.json();
-    return data.results;
-  } catch (error) {
-    console.error(`Failed to fetch movies for genre ${genreId}:`, error);
-    return [];
-  }
-}
-
-export default async function Home() {
-  const genres = await getGenres();
-  const trending = await getTrending("movie");
-  const popular = await getPopular("movie");
-  const topRated = await getTopRated("movie");
-  const actionMovies = await getMoviesForGenre(28);
-  const dramaMovies = await getMoviesForGenre(18);
+async function HomeContent() {
+  const [genres, trending, popular, topRated, actionMovies, dramaMovies] =
+    await Promise.all([
+      getGenres(),
+      getTrending("movie"),
+      getPopular("movie"),
+      getTopRated("movie"),
+      getByGenre(28),
+      getByGenre(18),
+    ]);
 
   return (
     <div className="min-h-screen bg-background text-text">
       <Navbar />
+
       <main className="pt-16">
         <Hero />
-        
         <ContinueWatchingRow />
         <FreeToWatchRow />
-        
+
         <div className="container mx-auto px-4">
           {trending.results.length > 0 && (
             <MovieRow
@@ -45,7 +42,7 @@ export default async function Home() {
               href="/movies"
             />
           )}
-          
+
           {popular.results.length > 0 && (
             <MovieRow
               title="Popular Movies"
@@ -53,7 +50,7 @@ export default async function Home() {
               href="/movies/popular"
             />
           )}
-          
+
           {topRated.results.length > 0 && (
             <MovieRow
               title="Top Rated"
@@ -62,19 +59,23 @@ export default async function Home() {
             />
           )}
 
-          {actionMovies.length > 0 && (
+          {actionMovies.results.length > 0 && (
             <MovieRow
               title="Action Movies"
-              movies={actionMovies}
-              href={`/movies/genre/${genres.find(g => g.id === 28)?.name?.toLowerCase()}`}
+              movies={actionMovies.results}
+              href={`/movies/genre/${
+                genres.find((g) => g.id === 28)?.name?.toLowerCase()
+              }`}
             />
           )}
 
-          {dramaMovies.length > 0 && (
+          {dramaMovies.results.length > 0 && (
             <MovieRow
               title="Drama Movies"
-              movies={dramaMovies}
-              href={`/movies/genre/${genres.find(g => g.id === 18)?.name?.toLowerCase()}`}
+              movies={dramaMovies.results}
+              href={`/movies/genre/${
+                genres.find((g) => g.id === 18)?.name?.toLowerCase()
+              }`}
             />
           )}
 
@@ -91,5 +92,17 @@ export default async function Home() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background" />
+      }
+    >
+      <HomeContent />
+    </Suspense>
   );
 }

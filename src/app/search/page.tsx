@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import { searchMovies, Movie, getImageUrl } from "@/lib/tmdb/client";
 import Image from "next/image";
 
-const SearchPage = () => {
+const SearchContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get("q") || "";
@@ -209,4 +209,10 @@ const SearchPage = () => {
   );
 };
 
-export default SearchPage;
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <SearchContent />
+    </Suspense>
+  );
+}

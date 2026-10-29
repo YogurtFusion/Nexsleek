@@ -2,21 +2,23 @@ import { createClient } from "@/lib/supabase/server";
 import { getMovieDetails } from "@/lib/tmdb/server";
 import VideoPlayer from "@/components/VideoPlayer";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 interface WatchPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-const WatchPage = async ({ params }: WatchPageProps) => {
+const WatchContent = async ({ params }: WatchPageProps) => {
+  const { id } = await params;
   const supabase = await createClient();
 
   // Get video from Supabase
   const { data: video, error } = await supabase
     .from("videos")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error || !video) {
@@ -69,4 +71,16 @@ const WatchPage = async ({ params }: WatchPageProps) => {
   );
 };
 
-export default WatchPage;
+export default function WatchPage({ params }: WatchPageProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-12 text-center">
+          Loading video...
+        </div>
+      }
+    >
+      <WatchContent params={params} />
+    </Suspense>
+  );
+}
