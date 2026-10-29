@@ -15,6 +15,11 @@ const MyListPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+
+interface MyListItem {
+  tmdb_id: number;
+  media_type: string;
+}
   useEffect(() => {
     const fetchMyList = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -36,10 +41,10 @@ const MyListPage = () => {
       }
 
       if (myList.length > 0) {
-        const movieIds = myList.map((item) => item.tmdb_id);
+        const movieIds = myList.map((item: MyListItem) => item.tmdb_id);
         
         // Batch fetch movies
-        const moviePromises = movieIds.map(async (id) => {
+        const moviePromises = movieIds.map(async (id: number) => {
           try {
             const response = await fetch(
               `https://api.themoviedb.org/3/movie/${id}?api_key=${process.env.TMDB_API_KEY}&language=en-US`
@@ -83,10 +88,10 @@ const MyListPage = () => {
     }
 
     if (data && data.length > 0) {
-      const movieIds = data.map((item) => item.tmdb_id);
+      const movieIds = data.map((item: MyListItem) => item.tmdb_id);
       try {
         const movies = await Promise.all(
-          movieIds.map(async (id) => {
+          movieIds.map(async (id: number) => {
             const response = await fetch(
               `https://api.themoviedb.org/3/movie/${id}?api_key=${process.env.TMDB_API_KEY}&language=en-US`
             );

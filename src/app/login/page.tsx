@@ -1,10 +1,11 @@
-"use client";
+ "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, Eye, EyeOff, User, Mail, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/browser";
+import { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 const supabase = createClient();
 
@@ -22,7 +23,7 @@ const Login = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event: AuthChangeEvent, session: Session | null) => {
         if (session?.user) {
           router.push(callbackUrl);
         }
